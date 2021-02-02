@@ -1308,7 +1308,7 @@ namespace AssetStudioGUI
                 if (saveFolderDialog.ShowDialog(this) == DialogResult.OK)
                 {
                     var exportPath = saveFolderDialog.Folder + "\\Animator\\";
-                    ExportAnimatorWithAnimationClip(animator, animationList, exportPath);
+                    ExportAnimatorWithAnimationClip(animator, animationList, exportPath, exportName: Exporter.CheckFileNameToLong(Exporter.RemoveInvalidFileNameChars(animator.Text), fallbackValue: Path.GetRandomFileName));
                 }
             }
         }

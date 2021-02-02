@@ -374,6 +374,22 @@ namespace AssetStudioGUI
             {
                 Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 
+                var toExportAssetsFileNames = toExportAssets.ToDictionary(a => a, a => RemoveInvalidFileNameChars(a.Text));
+                var toExportAssetsFileNameDuplicates = toExportAssetsFileNames.GroupBy(a => a.Value).Where(g => g.Count() >= 2).Select(g => g.Key).ToList();
+                string BuildFileName(AssetItem assetItem)
+                {
+                    var fileName = toExportAssetsFileNames[assetItem];
+
+                    fileName = CheckFileNameToLong(fileName, fallbackValue: assetItem.Asset.GetRawDataHash);
+
+                    if (!toExportAssetsFileNameDuplicates.Contains(fileName))
+                        return fileName;
+
+                    var assetHash = assetItem.Asset.GetRawDataHash();
+
+                    return fileName + " " + assetHash;
+                }
+
                 int toExportCount = toExportAssets.Count;
                 int exportedCount = 0;
                 int i = 0;
@@ -410,19 +426,19 @@ namespace AssetStudioGUI
                         switch (exportType)
                         {
                             case ExportType.Raw:
-                                if (ExportRawFile(asset, exportPath))
+                                if (ExportRawFile(asset, exportPath, BuildFileName(asset)))
                                 {
                                     exportedCount++;
                                 }
                                 break;
                             case ExportType.Dump:
-                                if (ExportDumpFile(asset, exportPath))
+                                if (ExportDumpFile(asset, exportPath, BuildFileName(asset)))
                                 {
                                     exportedCount++;
                                 }
                                 break;
                             case ExportType.Convert:
-                                if (ExportConvertFile(asset, exportPath))
+                                if (ExportConvertFile(asset, exportPath, BuildFileName(asset)))
                                 {
                                     exportedCount++;
                                 }
@@ -520,7 +536,7 @@ namespace AssetStudioGUI
                             continue;
                         }
                         //处理非法文件名
-                        var filename = FixFileName(j.Text);
+                        var filename = CheckFileNameToLong(RemoveInvalidFileNameChars(j.Text), fallbackValue: Path.GetRandomFileName);
                         //每个文件存放在单独的文件夹
                         var targetPath = $"{savePath}{filename}\\";
                         //重名文件处理
@@ -540,7 +556,7 @@ namespace AssetStudioGUI
                         StatusStripUpdate($"Exporting {filename}.fbx");
                         try
                         {
-                            ExportGameObject(j.gameObject, targetPath);
+                            ExportGameObject(j.gameObject, targetPath, CheckFileNameToLong(RemoveInvalidFileNameChars(j.gameObject.m_Name), fallbackValue: Path.GetRandomFileName));
                         }
                         catch (Exception ex)
                         {
@@ -568,7 +584,7 @@ namespace AssetStudioGUI
             }
         }
 
-        public static void ExportAnimatorWithAnimationClip(AssetItem animator, List<AssetItem> animationList, string exportPath)
+        public static void ExportAnimatorWithAnimationClip(AssetItem animator, List<AssetItem> animationList, string exportPath, string exportName)
         {
             ThreadPool.QueueUserWorkItem(state =>
             {
@@ -576,7 +592,7 @@ namespace AssetStudioGUI
                 StatusStripUpdate($"Exporting {animator.Text}");
                 try
                 {
-                    ExportAnimator(animator, exportPath, animationList);
+                    ExportAnimator(animator, exportPath, exportName, animationList);
                     if (Properties.Settings.Default.openAfterExport)
                     {
                         Process.Start(exportPath);
@@ -608,7 +624,7 @@ namespace AssetStudioGUI
                         StatusStripUpdate($"Exporting {gameObject.m_Name}");
                         try
                         {
-                            ExportGameObject(gameObject, exportPath, animationList);
+                            ExportGameObject(gameObject, exportPath, CheckFileNameToLong(RemoveInvalidFileNameChars(gameObject.m_Name), fallbackValue: Path.GetRandomFileName), animationList);
                             StatusStripUpdate($"Finished exporting {gameObject.m_Name}");
                         }
                         catch (Exception ex)
