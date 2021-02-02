@@ -83,8 +83,29 @@ namespace AssetStudio
 
         public byte[] GetRawData()
         {
-            reader.Reset();
-            return reader.ReadBytes((int)byteSize);
+            var position = reader.Position;
+            try
+            {
+                reader.Reset();
+                return reader.ReadBytes((int)byteSize);
+            }
+            finally
+            {
+                reader.Position = position;
+            }
+        }
+
+        private byte[] GetRawDataHashBytes()
+        {
+            using (var hashAlgorithm = System.Security.Cryptography.SHA1.Create())
+            {
+                return hashAlgorithm.ComputeHash(GetRawData());
+            }
+        }
+
+        public string GetRawDataHash()
+        {
+            return string.Join(string.Empty, GetRawDataHashBytes().Select(b => b.ToString("x2")));
         }
     }
 }

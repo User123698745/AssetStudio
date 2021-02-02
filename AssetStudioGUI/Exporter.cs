@@ -302,12 +302,11 @@ namespace AssetStudioGUI
         {
             var fileName = FixFileName(item.Text);
             fullPath = Path.Combine(dir, fileName + extension);
-            if (!File.Exists(fullPath))
+            if (File.Exists(fullPath))
             {
-                Directory.CreateDirectory(dir);
-                return true;
+                var assetHash = item.Asset.GetRawDataHash();
+                fullPath = Path.Combine(dir, fileName + " " + assetHash + extension);
             }
-            fullPath = Path.Combine(dir, fileName + item.UniqueID + extension);
             if (!File.Exists(fullPath))
             {
                 Directory.CreateDirectory(dir);
@@ -321,7 +320,8 @@ namespace AssetStudioGUI
             var exportFullPath = Path.Combine(exportPath, item.Text, item.Text + ".fbx");
             if (File.Exists(exportFullPath))
             {
-                exportFullPath = Path.Combine(exportPath, item.Text + item.UniqueID, item.Text + ".fbx");
+                var assetHash = item.Asset.GetRawDataHash();
+                exportFullPath = Path.Combine(exportPath, item.Text + " " + assetHash, item.Text + ".fbx");
             }
             var m_Animator = (Animator)item.Asset;
             var convert = animationList != null

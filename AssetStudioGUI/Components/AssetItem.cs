@@ -13,7 +13,6 @@ namespace AssetStudioGUI
         public long FullSize;
         public ClassIDType Type;
         public string InfoText;
-        public string UniqueID;
         public GameObjectTreeNode TreeNode;
 
         public AssetItem(Object asset)

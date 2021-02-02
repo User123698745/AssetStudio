@@ -147,7 +147,6 @@ namespace AssetStudioGUI
                 {
                     var assetItem = new AssetItem(asset);
                     objectAssetItemDic.Add(asset, assetItem);
-                    assetItem.UniqueID = " #" + i;
                     var exportable = false;
                     switch (asset)
                     {
@@ -231,7 +230,7 @@ namespace AssetStudioGUI
                     }
                     if (assetItem.Text == "")
                     {
-                        assetItem.Text = assetItem.TypeString + assetItem.UniqueID;
+                        assetItem.Text = assetItem.TypeString + " #" + i;
                     }
                     if (Properties.Settings.Default.displayAll || exportable)
                     {
